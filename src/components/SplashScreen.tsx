@@ -2,13 +2,15 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Leaf } from 'lucide-react';
 
+const SPLASH_DURATION = 2500; // 2.5 seconds
+
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 2500); // 2.5 seconds
+    const timer = setTimeout(onComplete, SPLASH_DURATION);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
