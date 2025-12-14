@@ -78,7 +78,7 @@ export default function ScanPage() {
   const startDetection = () => {
     // Run client-side object detection continuously
     const runDetection = async () => {
-      if (videoRef.current && videoRef.current.readyState === 4) {
+      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
         try {
           const predictions = await detect(videoRef.current);
           
