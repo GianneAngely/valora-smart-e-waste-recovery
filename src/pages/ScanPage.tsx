@@ -17,6 +17,11 @@ import { DetectionCanvas } from '@/components/scan/DetectionCanvas';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Helper to check if backend detection should be used as fallback
+const shouldUseBackendFallback = () => {
+  return import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== '';
+};
+
 export default function ScanPage() {
   const [mode, setMode] = useState<'camera' | 'upload'>('camera');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -84,6 +89,7 @@ export default function ScanPage() {
               label: mapToEwaste(p.class) || p.class,
               confidence: p.score,
               bbox: p.bbox as [number, number, number, number],
+              originalClass: p.class, // Keep original for color-coding
             }));
           
           setDetections(ewasteDetections);
@@ -100,8 +106,8 @@ export default function ScanPage() {
     // Start detection loop
     runDetection();
     
-    // Keep backend detection as optional fallback if API_URL is configured
-    if (API_URL && API_URL !== 'http://localhost:8000') {
+    // Keep backend detection as optional fallback if API_URL is explicitly configured
+    if (shouldUseBackendFallback()) {
       intervalRef.current = setInterval(async () => {
         if (videoRef.current && canvasRef.current) {
           const ctx = canvasRef.current.getContext('2d');
@@ -178,13 +184,14 @@ export default function ScanPage() {
           label: mapToEwaste(p.class) || p.class,
           confidence: p.score,
           bbox: p.bbox as [number, number, number, number],
+          originalClass: p.class, // Keep original for color-coding
         }));
       
       setDetections(ewasteDetections);
       setBackendError(false);
       
       // Try backend as fallback if configured
-      if (API_URL && API_URL !== 'http://localhost:8000') {
+      if (shouldUseBackendFallback()) {
         try {
           const formData = new FormData();
           formData.append('file', file);
