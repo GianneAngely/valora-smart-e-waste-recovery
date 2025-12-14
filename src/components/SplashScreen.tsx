@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Leaf } from 'lucide-react';
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+// import { Leaf } from 'lucide-react';
 
 const SPLASH_DURATION = 2500; // 2.5 seconds
 
@@ -15,7 +15,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [onComplete]);
 
   return (
-    <motion.div 
+    <motion.div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-primary to-secondary"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -27,11 +27,16 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", duration: 1 }}
-        className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center mb-6"
+        className="w-44 h-44 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center mb-6 overflow-hidden"
       >
-        <Leaf className="w-12 h-12 text-white" />
+        <img
+          src="valora full logo fix 2.svg "
+          alt="VALORA Logo"
+          className="w-44 h-44 object-contain"
+        />
+        {/* <Leaf className="w-12 h-12 text-white" /> */}
       </motion.div>
-      
+
       {/* App Name */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
@@ -41,7 +46,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       >
         VALORA
       </motion.h1>
-      
+
       {/* Tagline */}
       <motion.p
         initial={{ opacity: 0 }}
@@ -51,7 +56,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       >
         Value Recovery from E-Waste
       </motion.p>
-      
+
       {/* Loading indicator */}
       <motion.div
         initial={{ opacity: 0 }}
