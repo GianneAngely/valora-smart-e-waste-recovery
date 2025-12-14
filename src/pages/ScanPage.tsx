@@ -11,6 +11,7 @@ import { VALORA_COMPONENTS, getSafetyLevel, getSafetyNote } from '@/data/compone
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DetectionOverlay } from '@/components/scan/DetectionOverlay';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -22,6 +23,7 @@ export default function ScanPage() {
   const [backendError, setBackendError] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -40,6 +42,17 @@ export default function ScanPage() {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setIsStreaming(true);
+        
+        // Set video dimensions once metadata is loaded
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            setVideoDimensions({
+              width: videoRef.current.videoWidth,
+              height: videoRef.current.videoHeight,
+            });
+          }
+        };
+        
         startDetection();
       }
     } catch (error) {
@@ -250,6 +263,15 @@ export default function ScanPage() {
                 className={cn('w-full h-full object-cover', !isStreaming && 'hidden')}
               />
               <canvas ref={canvasRef} className="hidden" />
+
+              {/* Detection Overlay */}
+              {isStreaming && detections.length > 0 && videoDimensions.width > 0 && (
+                <DetectionOverlay
+                  detections={detections}
+                  videoWidth={videoDimensions.width}
+                  videoHeight={videoDimensions.height}
+                />
+              )}
 
               {!isStreaming && (
                 <div className="absolute inset-0 flex items-center justify-center">
