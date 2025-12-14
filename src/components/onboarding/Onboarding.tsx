@@ -1,31 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, ArrowRight, Recycle, Shield, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useSettings } from '@/hooks/useSettings';
-import { useValoraToast } from '@/hooks/useToast';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSettings } from "@/hooks/useSettings";
+import { useValoraToast } from "@/hooks/useToast";
+import ValoraLogo from "/valora logo aja.svg";
 
 const slides = [
   {
-    icon: Leaf,
-    title: 'Selamat datang di VALORA',
-    description: 'Platform green tech untuk recovery komponen e-waste secara aman dan bertanggung jawab.',
+    title: "Selamat datang di VALORA",
+    description:
+      "Platform green tech untuk recovery komponen e-waste secara aman dan bertanggung jawab.",
   },
   {
-    icon: Recycle,
-    title: 'Identifikasi & Recovery',
-    description: 'Gunakan Live Scan untuk mendeteksi komponen dan dapatkan panduan recovery yang aman.',
+    title: "Identifikasi & Recovery",
+    description:
+      "Gunakan Live Scan untuk mendeteksi komponen dan dapatkan panduan recovery yang aman.",
   },
   {
-    icon: Shield,
-    title: 'Keamanan Utama',
-    description: 'Setiap komponen memiliki tingkat keamanan: Aman, Perlu Hati-hati, atau Jangan Bongkar.',
+    title: "Keamanan Utama",
+    description:
+      "Setiap komponen memiliki tingkat keamanan: Aman, Perlu Hati-hati, atau Jangan Bongkar.",
   },
   {
-    icon: Users,
-    title: 'Komunitas Reuse',
-    description: 'Jual atau donasikan komponen yang masih layak di Pasar VALORA.',
+    title: "Komunitas Reuse",
+    description:
+      "Jual atau donasikan komponen yang masih layak di Pasar VALORA.",
   },
 ];
 
@@ -40,18 +41,16 @@ export function Onboarding() {
       setCurrentSlide(currentSlide + 1);
     } else {
       completeOnboarding();
-      toast('Siap! Yuk mulai recovery 🚀', 'success');
-      navigate('/');
+      toast("Siap! Yuk mulai recovery 🚀", "success");
+      navigate("/");
     }
   };
 
   const handleSkip = () => {
     completeOnboarding();
-    toast('Siap! Yuk mulai recovery 🚀', 'success');
-    navigate('/');
+    toast("Siap! Yuk mulai recovery 🚀", "success");
+    navigate("/");
   };
-
-  const CurrentIcon = slides[currentSlide].icon;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex flex-col">
@@ -68,13 +67,19 @@ export function Onboarding() {
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-8 shadow-glow"
+              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              className="w-24 h-24 mx-auto rounded-3xl bg-white flex items-center justify-center mb-8 shadow-glow overflow-hidden p-2"
             >
-              <CurrentIcon className="w-12 h-12 text-primary-foreground" />
+              <img
+                src={ValoraLogo}
+                alt="VALORA Logo"
+                className="w-full h-full object-contain"
+              />
             </motion.div>
 
-            <h1 className="text-2xl font-bold mb-4">{slides[currentSlide].title}</h1>
+            <h1 className="text-2xl font-bold mb-4">
+              {slides[currentSlide].title}
+            </h1>
             <p className="text-muted-foreground max-w-xs mx-auto">
               {slides[currentSlide].description}
             </p>
@@ -88,8 +93,8 @@ export function Onboarding() {
               onClick={() => setCurrentSlide(index)}
               className={`h-2 rounded-full transition-all duration-300 ${
                 index === currentSlide
-                  ? 'w-8 bg-primary'
-                  : 'w-2 bg-muted-foreground/30'
+                  ? "w-8 bg-primary"
+                  : "w-2 bg-muted-foreground/30"
               }`}
             />
           ))}
@@ -97,8 +102,12 @@ export function Onboarding() {
       </div>
 
       <div className="p-6 space-y-3">
-        <Button onClick={handleNext} className="w-full h-14 text-lg gap-2" size="lg">
-          {currentSlide < slides.length - 1 ? 'Lanjut' : 'Mulai Sekarang'}
+        <Button
+          onClick={handleNext}
+          className="w-full h-14 text-lg gap-2"
+          size="lg"
+        >
+          {currentSlide < slides.length - 1 ? "Lanjut" : "Mulai Sekarang"}
           <ArrowRight className="w-5 h-5" />
         </Button>
         {currentSlide < slides.length - 1 && (
