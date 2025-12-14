@@ -51,8 +51,9 @@ export function DetectionCanvas({ videoRef, detections, isStreaming }: Detection
       detections.forEach((detection) => {
         const [x, y, width, height] = detection.bbox;
         
-        // Determine if this is electronics
-        const isElectronicsItem = isElectronics(detection.label);
+        // Determine if this is electronics (use original class if available)
+        const classToCheck = detection.originalClass || detection.label;
+        const isElectronicsItem = isElectronics(classToCheck);
         
         // Set color: green for electronics, gray for others
         const color = isElectronicsItem ? '#22c55e' : '#9ca3af';
