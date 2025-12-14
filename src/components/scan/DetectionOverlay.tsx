@@ -6,6 +6,7 @@ interface DetectionOverlayProps {
   detections: Detection[];
   videoWidth: number;
   videoHeight: number;
+  containerRef?: React.RefObject<HTMLElement>;
 }
 
 const SAFETY_COLORS = {
@@ -14,7 +15,7 @@ const SAFETY_COLORS = {
   restricted: '#ef4444',
 };
 
-export function DetectionOverlay({ detections, videoWidth, videoHeight }: DetectionOverlayProps) {
+export function DetectionOverlay({ detections, videoWidth, videoHeight, containerRef }: DetectionOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -23,6 +24,20 @@ export function DetectionOverlay({ detections, videoWidth, videoHeight }: Detect
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Get the displayed dimensions of the canvas
+    const displayWidth = canvas.offsetWidth;
+    const displayHeight = canvas.offsetHeight;
+    
+    // Set canvas internal dimensions to match display dimensions for proper scaling
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+      canvas.width = displayWidth;
+      canvas.height = displayHeight;
+    }
+
+    // Calculate scale factors between natural and displayed dimensions
+    const scaleX = displayWidth / videoWidth;
+    const scaleY = displayHeight / videoHeight;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -36,6 +51,12 @@ export function DetectionOverlay({ detections, videoWidth, videoHeight }: Detect
         return;
       }
 
+      // Scale coordinates to displayed dimensions
+      const scaledX = x * scaleX;
+      const scaledY = y * scaleY;
+      const scaledWidth = width * scaleX;
+      const scaledHeight = height * scaleY;
+
       // Get safety level and corresponding color
       const safetyLevel = getSafetyLevel(detection.label);
       const color = SAFETY_COLORS[safetyLevel];
@@ -43,7 +64,7 @@ export function DetectionOverlay({ detections, videoWidth, videoHeight }: Detect
       // Draw bounding box
       ctx.strokeStyle = color;
       ctx.lineWidth = 3;
-      ctx.strokeRect(x, y, width, height);
+      ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
 
       // Draw label background
       const label = `${detection.label} ${Math.round(detection.confidence * 100)}%`;
@@ -53,20 +74,23 @@ export function DetectionOverlay({ detections, videoWidth, videoHeight }: Detect
       const textHeight = 20;
       const padding = 4;
 
+      // Determine label position (above or below box based on available space)
+      const labelAbove = scaledY - textHeight - padding;
+      const labelY = labelAbove > 0 ? labelAbove : scaledY + scaledHeight + padding;
+      const textY = labelAbove > 0 ? scaledY - padding - 4 : scaledY + scaledHeight + textHeight;
+
       ctx.fillStyle = color;
-      ctx.fillRect(x, y - textHeight - padding, textWidth + padding * 2, textHeight + padding);
+      ctx.fillRect(scaledX, labelY, textWidth + padding * 2, textHeight + padding);
 
       // Draw label text
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(label, x + padding, y - padding - 4);
+      ctx.fillText(label, scaledX + padding, textY);
     });
-  }, [detections, videoWidth, videoHeight]);
+  }, [detections, videoWidth, videoHeight, containerRef]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={videoWidth}
-      height={videoHeight}
       className="absolute inset-0 w-full h-full pointer-events-none"
     />
   );
