@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { Button } from '@/components/ui/button';
 import { SafetyBadge } from '@/components/ui/SafetyBadge';
@@ -11,6 +11,9 @@ import { VALORA_COMPONENTS, getSafetyLevel, getSafetyNote } from '@/data/compone
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useObjectDetection } from '@/hooks/useObjectDetection';
+import { isElectronics, mapToEwaste } from '@/utils/ewasteMapping';
+import { DetectionCanvas } from '@/components/scan/DetectionCanvas';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -27,9 +30,13 @@ export default function ScanPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const [scanHistory, setScanHistory] = useLocalStorage<ScanHistory[]>('valora-scan-history', []);
   const { toast } = useValoraToast();
+  
+  // Initialize object detection model
+  const { detect, isLoading: modelLoading, error: modelError } = useObjectDetection();
 
   const startCamera = async () => {
     try {
@@ -56,30 +63,66 @@ export default function ScanPage() {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     setIsStreaming(false);
   };
 
   const startDetection = () => {
-    intervalRef.current = setInterval(async () => {
-      if (videoRef.current && canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          canvasRef.current.width = videoRef.current.videoWidth;
-          canvasRef.current.height = videoRef.current.videoHeight;
-          ctx.drawImage(videoRef.current, 0, 0);
-
-          canvasRef.current.toBlob(
-            async (blob) => {
-              if (blob) {
-                await sendToBackend(blob);
-              }
-            },
-            'image/jpeg',
-            0.7
-          );
+    // Run client-side object detection continuously
+    const runDetection = async () => {
+      if (videoRef.current && videoRef.current.readyState === 4) {
+        try {
+          const predictions = await detect(videoRef.current);
+          
+          // Filter to only electronics and map to e-waste format
+          const ewasteDetections: Detection[] = predictions
+            .filter(p => isElectronics(p.class))
+            .map(p => ({
+              label: mapToEwaste(p.class) || p.class,
+              confidence: p.score,
+              bbox: p.bbox as [number, number, number, number],
+            }));
+          
+          setDetections(ewasteDetections);
+          setBackendError(false);
+        } catch (error) {
+          console.error('Detection error:', error);
         }
       }
-    }, 2000);
+      
+      // Continue detection loop
+      animationFrameRef.current = requestAnimationFrame(runDetection);
+    };
+    
+    // Start detection loop
+    runDetection();
+    
+    // Keep backend detection as optional fallback if API_URL is configured
+    if (API_URL && API_URL !== 'http://localhost:8000') {
+      intervalRef.current = setInterval(async () => {
+        if (videoRef.current && canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) {
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+            ctx.drawImage(videoRef.current, 0, 0);
+
+            canvasRef.current.toBlob(
+              async (blob) => {
+                if (blob) {
+                  await sendToBackend(blob);
+                }
+              },
+              'image/jpeg',
+              0.7
+            );
+          }
+        }
+      }, 2000);
+    }
   };
 
   const sendToBackend = async (blob: Blob) => {
@@ -112,25 +155,60 @@ export default function ScanPage() {
       return;
     }
 
-    setUploadedImage(URL.createObjectURL(file));
+    const imageUrl = URL.createObjectURL(file);
+    setUploadedImage(imageUrl);
     setIsProcessing(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(`${API_URL}/detect`, {
-        method: 'POST',
-        body: formData,
+      // Use client-side detection on uploaded image
+      const img = new Image();
+      img.src = imageUrl;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
       });
 
-      if (!response.ok) throw new Error('Detection failed');
-
-      const data = await response.json();
-      setDetections(data.detections || []);
+      const predictions = await detect(img);
+      
+      // Filter to only electronics and map to e-waste format
+      const ewasteDetections: Detection[] = predictions
+        .filter(p => isElectronics(p.class))
+        .map(p => ({
+          label: mapToEwaste(p.class) || p.class,
+          confidence: p.score,
+          bbox: p.bbox as [number, number, number, number],
+        }));
+      
+      setDetections(ewasteDetections);
       setBackendError(false);
+      
+      // Try backend as fallback if configured
+      if (API_URL && API_URL !== 'http://localhost:8000') {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await fetch(`${API_URL}/detect`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            // Merge backend results if they provide additional detections
+            if (data.detections && data.detections.length > 0) {
+              setDetections(prev => [...prev, ...data.detections]);
+            }
+          }
+        } catch (backendError) {
+          // Backend failed but client-side worked, so continue
+          console.log('Backend detection failed, using client-side only');
+        }
+      }
     } catch (error) {
       setBackendError(true);
+      toast('Gagal mendeteksi objek', 'warning');
     } finally {
       setIsProcessing(false);
     }
@@ -225,14 +303,40 @@ export default function ScanPage() {
           </Button>
         </div>
 
-        {/* Backend Error Banner */}
-        {backendError && (
+        {/* Model Loading Indicator */}
+        {modelLoading && (
+          <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+            <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-primary">Memuat model AI deteksi...</p>
+              <p className="text-sm text-muted-foreground">
+                Proses ini hanya terjadi sekali. Model akan di-cache di browser.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Model Error Banner */}
+        {modelError && (
           <div className="bg-caution-light border border-caution/20 rounded-xl p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-caution flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-caution">Server deteksi belum aktif</p>
+              <p className="font-medium text-caution">Gagal memuat model AI</p>
               <p className="text-sm text-muted-foreground">
-                Kamu masih bisa pakai Upload Foto atau pilih manual.
+                Kamu masih bisa pilih manual atau coba refresh halaman.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Backend Error Banner */}
+        {backendError && !modelLoading && (
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-blue-600 dark:text-blue-400">Menggunakan deteksi AI lokal</p>
+              <p className="text-sm text-muted-foreground">
+                Deteksi berjalan sepenuhnya di browser Anda. Server backend tidak diperlukan.
               </p>
             </div>
           </div>
@@ -250,6 +354,13 @@ export default function ScanPage() {
                 className={cn('w-full h-full object-cover', !isStreaming && 'hidden')}
               />
               <canvas ref={canvasRef} className="hidden" />
+              
+              {/* Detection Canvas Overlay */}
+              <DetectionCanvas 
+                videoRef={videoRef}
+                detections={detections}
+                isStreaming={isStreaming}
+              />
 
               {!isStreaming && (
                 <div className="absolute inset-0 flex items-center justify-center">

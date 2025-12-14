@@ -132,6 +132,57 @@ export const VALORA_COMPONENTS: Component[] = [
     tools: ['Tidak perlu alat khusus'],
     dropoffRequired: false,
   },
+  {
+    id: 'monitor',
+    name: 'Monitor/TV',
+    label: 'monitor',
+    category: 'Display',
+    safety: 'safe',
+    safetyNote: 'Cabut daya sebelum membongkar. Layar LCD aman, CRT butuh profesional.',
+    recoverySteps: [
+      'Cabut semua kabel daya',
+      'Lepas stand atau mounting bracket',
+      'Buka casing belakang dengan hati-hati',
+      'Pisahkan power board dan panel LCD',
+      'PERHATIAN: CRT lama berbahaya, serahkan ke ahli'
+    ],
+    tools: ['Obeng', 'Spudger'],
+    dropoffRequired: false,
+  },
+  {
+    id: 'microwave',
+    name: 'Microwave',
+    label: 'microwave',
+    category: 'Perangkat Utama',
+    safety: 'safe',
+    safetyNote: 'Hati-hati dengan kapasitor tegangan tinggi.',
+    recoverySteps: [
+      'Cabut dari listrik',
+      'Buka casing dengan obeng',
+      'Lepas turntable dan komponen mekanis',
+      'Pisahkan control board',
+      'JANGAN sentuh magnetron atau kapasitor'
+    ],
+    tools: ['Obeng', 'Sarung tangan'],
+    dropoffRequired: false,
+  },
+  {
+    id: 'small_appliance',
+    name: 'Alat Elektronik Kecil',
+    label: 'small_appliance',
+    category: 'Perangkat Utama',
+    safety: 'safe',
+    safetyNote: 'Aman untuk dibongkar setelah dicabut dari listrik.',
+    recoverySteps: [
+      'Cabut dari sumber listrik',
+      'Buka casing dengan obeng',
+      'Lepas motor atau heating element',
+      'Pisahkan kabel dan switch',
+      'Simpan komponen untuk reuse'
+    ],
+    tools: ['Obeng', 'Tang'],
+    dropoffRequired: false,
+  },
 
   // CAUTION components
   {
@@ -350,6 +401,9 @@ export const SAFETY_NOTES: Record<string, string> = {
   heat_sink: 'Bersihkan thermal paste, jangan gores permukaan kontak.',
   motor: 'Lepas kabel rapi, jangan potong sembarang.',
   remote_control: 'Pisahkan baterai dulu.',
+  monitor: 'Cabut daya sebelum membongkar. Layar LCD aman, CRT butuh profesional.',
+  microwave: 'Hati-hati dengan kapasitor tegangan tinggi.',
+  small_appliance: 'Aman untuk dibongkar setelah dicabut dari listrik.',
 };
 
 export const getComponentByLabel = (label: string): Component | undefined => {
