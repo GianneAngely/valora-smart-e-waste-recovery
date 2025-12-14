@@ -59,6 +59,36 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- TensorFlow.js with COCO-SSD for client-side object detection
+
+## Features
+
+### 🤖 Client-Side Object Detection
+
+This application uses TensorFlow.js with the COCO-SSD model to detect e-waste/electronics in real-time directly in the browser:
+
+- **Real-time detection**: Detects objects at ~20-30 FPS on modern devices
+- **Offline capable**: Works completely offline after initial model load (~5MB, cached by browser)
+- **No backend required**: All detection happens client-side in the browser
+- **Visual feedback**: Color-coded bounding boxes (green for electronics)
+- **Auto-mapping**: Detected objects are automatically mapped to e-waste categories
+
+#### Supported Electronics Detection:
+- Smartphones (cell phone)
+- Laptops
+- Keyboards
+- Mice
+- Remote controls
+- Monitors/TVs
+- Microwaves
+- Small appliances (toasters, hair dryers, etc.)
+
+#### Usage:
+1. Open the Scan page
+2. Wait for the AI model to load (first time only)
+3. Point your camera at electronic devices or upload a photo
+4. See real-time bounding boxes and detected items
+5. Manual selection is available as a fallback option
 
 ## How can I deploy this project?
 
