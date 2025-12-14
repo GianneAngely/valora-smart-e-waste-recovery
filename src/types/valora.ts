@@ -17,6 +17,7 @@ export interface Detection {
   label: string;
   confidence: number;
   bbox: [number, number, number, number]; // x, y, width, height
+  originalClass?: string; // Original COCO-SSD class name (for color-coding)
 }
 
 export interface DetectionResult {
