@@ -6,7 +6,6 @@ interface DetectionOverlayProps {
   detections: Detection[];
   videoWidth: number;
   videoHeight: number;
-  containerRef?: React.RefObject<HTMLElement>;
 }
 
 const SAFETY_COLORS = {
@@ -15,7 +14,7 @@ const SAFETY_COLORS = {
   restricted: '#ef4444',
 };
 
-export function DetectionOverlay({ detections, videoWidth, videoHeight, containerRef }: DetectionOverlayProps) {
+export function DetectionOverlay({ detections, videoWidth, videoHeight }: DetectionOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -86,7 +85,7 @@ export function DetectionOverlay({ detections, videoWidth, videoHeight, containe
       ctx.fillStyle = '#ffffff';
       ctx.fillText(label, scaledX + padding, textY);
     });
-  }, [detections, videoWidth, videoHeight, containerRef]);
+  }, [detections, videoWidth, videoHeight]);
 
   return (
     <canvas
