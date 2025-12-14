@@ -24,9 +24,11 @@ export default function ScanPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -125,7 +127,16 @@ export default function ScanPage() {
       return;
     }
 
-    setUploadedImage(URL.createObjectURL(file));
+    const imageUrl = URL.createObjectURL(file);
+    setUploadedImage(imageUrl);
+    
+    // Load image to get dimensions
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.src = imageUrl;
+    
     setIsProcessing(true);
 
     try {
@@ -294,7 +305,22 @@ export default function ScanPage() {
           ) : (
             <div className="relative aspect-[4/3] bg-muted">
               {uploadedImage ? (
-                <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain" />
+                <>
+                  <img 
+                    ref={imageRef}
+                    src={uploadedImage} 
+                    alt="Uploaded" 
+                    className="w-full h-full object-contain" 
+                  />
+                  {/* Detection Overlay for uploaded image */}
+                  {detections.length > 0 && imageDimensions.width > 0 && (
+                    <DetectionOverlay
+                      detections={detections}
+                      videoWidth={imageDimensions.width}
+                      videoHeight={imageDimensions.height}
+                    />
+                  )}
+                </>
               ) : (
                 <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors">
                   <Upload className="w-12 h-12 text-muted-foreground mb-2" />
