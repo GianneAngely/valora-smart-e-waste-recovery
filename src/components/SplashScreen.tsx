@@ -30,7 +30,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         className="w-44 h-44 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center mb-6 overflow-hidden"
       >
         <img
-          src="valora full logo fix 2.svg "
+          src="valora logo aja.svg "
           alt="VALORA Logo"
           className="w-44 h-44 object-contain"
         />
