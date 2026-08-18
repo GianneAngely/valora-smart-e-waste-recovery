@@ -2,6 +2,8 @@
 
 A mobile-first web app that helps people safely recover value from electronic waste. Point your camera at a device and an in-browser AI model recognises the electronics in view, then Valora guides you through separating components safely and giving them a second life.
 
+**Live demo → [valora-ewaste.vercel.app](https://valora-ewaste.vercel.app)**
+
 ![Valora home screen](screenshot.png)
 
 ## Overview
