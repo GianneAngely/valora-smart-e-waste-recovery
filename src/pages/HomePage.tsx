@@ -41,10 +41,10 @@ export default function HomePage() {
             <p className="text-sm opacity-90 mb-4">
               Identifikasi, pisahkan, dan berikan nilai baru pada komponen elektronik bekas.
             </p>
-            <Button 
-              onClick={() => navigate('/scan')} 
+            <Button
+              onClick={() => navigate('/scan')}
               variant="secondary"
-              className="bg-white/20 hover:bg-white/30 text-primary-foreground border-0"
+              className="bg-white text-primary hover:bg-white/90 border-0 font-semibold shadow-md"
             >
               Mulai Scan <ScanLine className="w-4 h-4 ml-2" />
             </Button>
@@ -63,7 +63,7 @@ export default function HomePage() {
               <Recycle className="w-5 h-5 text-safe" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.devicesRecovered}</p>
+              <p className="tnum text-2xl font-bold tracking-tight">{stats.devicesRecovered}</p>
               <p className="text-xs text-muted-foreground">Perangkat</p>
             </div>
           </div>
@@ -72,7 +72,7 @@ export default function HomePage() {
               <Zap className="w-5 h-5 text-caution" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.componentsReused}</p>
+              <p className="tnum text-2xl font-bold tracking-tight">{stats.componentsReused}</p>
               <p className="text-xs text-muted-foreground">Komponen</p>
             </div>
           </div>
